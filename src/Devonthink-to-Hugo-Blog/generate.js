@@ -4,7 +4,6 @@
 const devonthink = Application('DEVONthink 3')
 const blogPath = '/Users/jiayuan/Dropbox/personal-site/blog/content/post/'
 
-const blogFolder = devonthink.databases.byName('02.Writing').parents.byName('Blog')
 
 
 /**
@@ -79,6 +78,9 @@ function getMetaData(record) {
   // Get categories
   const category = customMetaData.mdcategory
 
+  // Get draft info
+  const isDraft = customMetaData.mddraft
+
   // Get title
   const title = record.name()
 
@@ -88,7 +90,8 @@ function getMetaData(record) {
     fileName,
     tags,
     category,
-    title
+    title,
+    isDraft
   }
 
   return metaData
@@ -101,6 +104,7 @@ date: ${metaData.createdTime}
 lastmod: ${metaData.updatedTime}
 categories: [${metaData.category}]
 tags: [${metaData.tags}]
+draft: ${metaData.isDraft === true}
 ---
   `
 
@@ -108,17 +112,30 @@ tags: [${metaData.tags}]
 }
 
 
+function main() {
+  const blogPosts = devonthink.databases.byName('02.Writing').parents.byName('Blog').children()
+
+  for (let i = 0; i < blogPosts.length; i++) {
+    const selectedRecord = blogPosts[i]
+
+    const metaData = getMetaData(selectedRecord)
+
+    const yamlMetaString = generateYamlMetaString(metaData)
+    const content = selectedRecord.plainText()
+    const blogPostContent = `${yamlMetaString}
+${content}
+`
+    writeToFile(metaData.fileName, blogPath, blogPostContent)
+  }
+
+  const app = Application.currentApplication()
+  app.includeStandardAdditions = true
+
+  app.displayNotification(`You have generated ${blogPosts.length} articles.`, { withTitle: 'Success' })
+}
+
 /**
  * Main
  */
+main()
 
-const selectedRecord = devonthink.selection()[0]
-const metaData = getMetaData(selectedRecord)
-
-const yamlMetaString = generateYamlMetaString(metaData)
-const content = selectedRecord.plainText()
-const blogPost = `${yamlMetaString}
-${content}
-`
-
-writeToFile(metaData.fileName, blogPath, blogPost)
