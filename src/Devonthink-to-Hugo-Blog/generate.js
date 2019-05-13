@@ -131,9 +131,6 @@ ${content}
   app.includeStandardAdditions = true
 
   app.displayNotification(`You have generated ${blogPosts.length} articles.`, { withTitle: 'Success' })
-
-  app.doShellScript('sh ~/Dropbox/personal-site/blog/update.sh')
-  app.displayNotification('Uploaded to GitHub.', { withTitle: 'Success' })
 }
 
 /**
