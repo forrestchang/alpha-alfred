@@ -1,9 +1,8 @@
 /**
  * Constants
  */
-const devonthink = Application('DEVONthink 3')
-const blogPath = '/Users/jiayuan/Dropbox/personal-site/blog/content/post/'
-
+const devonthink = Application("DEVONthink 3");
+const blogPath = "/Users/jiayuan/Dropbox/personal-site/blog/content/post/";
 
 /**
  * Utils
@@ -11,15 +10,15 @@ const blogPath = '/Users/jiayuan/Dropbox/personal-site/blog/content/post/'
 
 function formatTime(time, cFormat) {
   if (arguments.length === 0) {
-    return null
+    return null;
   }
-  const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
-  let date
-  if (typeof time === 'object') {
-    date = time
+  const format = cFormat || "{y}-{m}-{d} {h}:{i}:{s}";
+  let date;
+  if (typeof time === "object") {
+    date = time;
   } else {
-    if (('' + time).length === 10) time = parseInt(time) * 1000
-    date = new Date(time)
+    if (("" + time).length === 10) time = parseInt(time) * 1000;
+    date = new Date(time);
   }
   const formatObj = {
     y: date.getFullYear(),
@@ -29,59 +28,63 @@ function formatTime(time, cFormat) {
     i: date.getMinutes(),
     s: date.getSeconds(),
     a: date.getDay()
-  }
+  };
   const time_str = format.replace(/{([ymdhisa])+}/g, (result, key) => {
-    let value = formatObj[key]
-    if (key === 'a') return ['一', '二', '三', '四', '五', '六', '日'][value - 1]
+    let value = formatObj[key];
+    if (key === "a")
+      return ["一", "二", "三", "四", "五", "六", "日"][value - 1];
     if (result.length > 0 && value < 10) {
-      value = '0' + value
+      value = "0" + value;
     }
-    return value || 0
-  })
-  return time_str
+    return value || 0;
+  });
+  return time_str;
 }
-
 
 /**
  * Functions
  */
 
 function writeToFile(filename, path, content) {
-  if (!path.endsWith('/')) {
-    path = path + '/'
+  if (!path.endsWith("/")) {
+    path = path + "/";
   }
-  filePath = path + filename
+  filePath = path + filename;
 
   contentEncoded = $.NSString.alloc.initWithUTF8String(content);
-  contentEncoded.writeToFileAtomicallyEncodingError(filePath, true, $.NSUTF8StringEncoding, null);
+  contentEncoded.writeToFileAtomicallyEncodingError(
+    filePath,
+    true,
+    $.NSUTF8StringEncoding,
+    null
+  );
 }
 
 function getMetaData(record) {
-
   // Get created time
-  const createdTime = formatTime(record.creationDate(), '{y}-{m}-{d}')
+  const createdTime = formatTime(record.creationDate(), "{y}-{m}-{d}");
 
   // Get updated time
-  const updatedTime = formatTime(record.modificationDate(), '{y}-{m}-{d}')
+  const updatedTime = formatTime(record.modificationDate(), "{y}-{m}-{d}");
 
   // Get file name
-  const customMetaData = record.customMetaData()
-  let fileName = customMetaData.mdblogfilename
-  if (!fileName.endsWith('.md')) {
-    fileName = fileName + '.md'
+  const customMetaData = record.customMetaData();
+  let fileName = customMetaData.mdblogfilename;
+  if (!fileName.endsWith(".md")) {
+    fileName = fileName + ".md";
   }
 
   // Get tags
-  const tags = record.tags()
+  const tags = record.tags();
 
   // Get categories
-  const category = customMetaData.mdcategory
+  const category = customMetaData.mdcategory;
 
   // Get draft info
-  const isDraft = customMetaData.mddraft
+  const isDraft = customMetaData.mddraft;
 
   // Get title
-  const title = record.name()
+  const title = record.name();
 
   const metaData = {
     createdTime,
@@ -91,9 +94,9 @@ function getMetaData(record) {
     category,
     title,
     isDraft
-  }
+  };
 
-  return metaData
+  return metaData;
 }
 
 function generateYamlMetaString(metaData) {
@@ -105,36 +108,39 @@ categories: [${metaData.category}]
 tags: [${metaData.tags}]
 draft: ${metaData.isDraft === true}
 ---
-  `
+  `;
 
-  return yamlMetaString
+  return yamlMetaString;
 }
 
-
 function main() {
-  const blogPosts = devonthink.databases.byName('02.Writing').parents.byName('Blog').children()
+  const blogPosts = devonthink.databases
+    .byName("02.Writing")
+    .parents.byName("Blog")
+    .children();
 
   for (let i = 0; i < blogPosts.length; i++) {
-    const selectedRecord = blogPosts[i]
+    const selectedRecord = blogPosts[i];
 
-    const metaData = getMetaData(selectedRecord)
+    const metaData = getMetaData(selectedRecord);
 
-    const yamlMetaString = generateYamlMetaString(metaData)
-    const content = selectedRecord.plainText()
+    const yamlMetaString = generateYamlMetaString(metaData);
+    const content = selectedRecord.plainText();
     const blogPostContent = `${yamlMetaString}
 ${content}
-`
-    writeToFile(metaData.fileName, blogPath, blogPostContent)
+`;
+    writeToFile(metaData.fileName, blogPath, blogPostContent);
   }
 
-  const app = Application.currentApplication()
-  app.includeStandardAdditions = true
+  const app = Application.currentApplication();
+  app.includeStandardAdditions = true;
 
-  app.displayNotification(`You have generated ${blogPosts.length} articles.`, { withTitle: 'Success' })
+  app.displayNotification(`You have generated ${blogPosts.length} articles.`, {
+    withTitle: "Success"
+  });
 }
 
 /**
  * Main
  */
-main()
-
+main();
